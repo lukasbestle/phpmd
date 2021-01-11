@@ -1,0 +1,32 @@
+name: Test
+on: push
+
+jobs:
+  phpmd:
+    name: PHPMD
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          submodules: true
+
+      - name: Setup PHP environment
+        uses: shivammathur/setup-php@v2
+        with:
+          coverage: none
+          tools: composer:v2
+
+      - name: Install deps
+        run: composer install --no-suggest --prefer-dist
+
+      - name: Test
+        run: src/bin/phpmd test github naming,cleancode --reportfile-sarif phpmd.sarif
+
+      - name: Upload code scanning results to GitHub
+        if: always()
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: phpmd.sarif
